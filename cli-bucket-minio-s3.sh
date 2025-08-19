@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 
 ## COMO USAR:
-## export USER_ACCESS_KEY='SUA_ACCESS_KEY'
-## export USER_SECRET_KEY='SUA_SECRET_KEY'
+# export USER_ACCESS_KEY='SUA_ACCESS_KEY'
+# export USER_SECRET_KEY='SUA_SECRET_KEY'
 # export MC_INSECURE=1
-##
-## Para arquivo:
-## export LOGS_PATH='/var/log/alternatives.log'
-##
-## Para pasta:
-## export LOGS_PATH='/var/log/'
-##
-## bash ./cli-bucket-minio-s3.sh
+#
+# Para arquivo:
+# export FILES_PATH='/var/log/alternatives.log'
+#
+# Para pasta:
+# export FILES_PATH='/var/log/'
+#
+# bash ./cli-bucket-minio-s3.sh
 
 set -euo pipefail
 
@@ -24,7 +24,7 @@ MINIO_ENDPOINT="${MINIO_ENDPOINT:-https://s3-api.edu.br}"
 
 # bucket
 BUCKET="backup-logs"
-LOGS_PATH="${LOGS_PATH:-/var/log/alternatives.log}"   # ex.: /var/log/  ou  /var/log/alternatives.log
+FILES_PATH="${FILES_PATH:-/var/log/alternatives.log}"   # ex.: /var/log/  ou  /var/log/alternatives.log
 S3_PREFIX="${S3_PREFIX:-logs}"                        # subpasta no bucket
 ALIAS="s3"
 
@@ -61,8 +61,8 @@ else
   mc mb "$ALIAS/$BUCKET"
 fi
 
-if [[ ! -e "$LOGS_PATH" ]]; then
-  echo "[ERRO] Origem '$LOGS_PATH' não existe."; exit 1
+if [[ ! -e "$FILES_PATH" ]]; then
+  echo "[ERRO] Origem '$FILES_PATH' não existe."; exit 1
 fi
 
 ## destino
@@ -71,13 +71,13 @@ DATE_TAG="$(date +%Y%m%d-%H%M%S)"
 DEST="$ALIAS/$BUCKET/$S3_PREFIX/$HOSTNAME_TAG/$DATE_TAG/"
 
 ## upload para bucket
-if [[ -d "$LOGS_PATH" ]]; then
+if [[ -d "$FILES_PATH" ]]; then
   echo "[INFO] Detectado diretório. Enviando recursivamente..."
-  SRC_DIR="${LOGS_PATH%/}"
+  SRC_DIR="${FILES_PATH%/}"
   mc cp --recursive --attr "x-amz-meta-source=$HOSTNAME_TAG" "${MC_CP_FLAGS[@]}" "$SRC_DIR" "$DEST"
 else
   echo "[INFO] Detectado arquivo. Enviando arquivo..."
-  mc cp --attr "x-amz-meta-source=$HOSTNAME_TAG" "${MC_CP_FLAGS[@]}" "$LOGS_PATH" "$DEST"
+  mc cp --attr "x-amz-meta-source=$HOSTNAME_TAG" "${MC_CP_FLAGS[@]}" "$FILES_PATH" "$DEST"
 fi
 
 echo "====================================================="
@@ -85,7 +85,7 @@ echo "Upload concluído."
 echo "Endpoint:   $MINIO_ENDPOINT"
 echo "Bucket:     $BUCKET"
 echo "Destino:    s3://$BUCKET/$S3_PREFIX/$HOSTNAME_TAG/$DATE_TAG/"
-echo "Origem:     $LOGS_PATH"
+echo "Origem:     $FILES_PATH"
 echo "Path-Style: on"
 echo "Insecure:   ${MC_INSECURE:-0}"
 echo "====================================================="
